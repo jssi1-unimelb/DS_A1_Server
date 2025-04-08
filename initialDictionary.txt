@@ -1,0 +1,82 @@
+[
+  {
+    "word": "run",
+    "meaning": ["to move swiftly on foot", "to operate or function", "to manage or conduct"]
+  },
+  {
+    "word": "light",
+    "meaning": ["something that makes things visible", "not heavy", "gentle or delicate"]
+  },
+  {
+    "word": "bark",
+    "meaning": ["the sound a dog makes", "the outer covering of a tree"]
+  },
+  {
+    "word": "spring",
+    "meaning": ["a season of the year", "to leap or jump", "a natural source of water"]
+  },
+  {
+    "word": "pitch",
+    "meaning": ["the quality of a sound", "to throw something", "a sticky substance"]
+  },
+  {
+    "word": "bat",
+    "meaning": ["a flying nocturnal mammal", "a piece of sports equipment used in baseball"]
+  },
+  {
+    "word": "date",
+    "meaning": ["a particular day of the month", "a romantic meeting", "a sweet fruit from a palm tree"]
+  },
+  {
+    "word": "charge",
+    "meaning": ["to ask for payment", "to rush forward", "to accuse someone formally"]
+  },
+  {
+    "word": "bank",
+    "meaning": ["a financial institution", "the side of a river"]
+  },
+  {
+    "word": "right",
+    "meaning": ["correct or accurate", "a direction", "a moral or legal entitlement"]
+  },
+  {
+    "word": "wave",
+    "meaning": ["a moving ridge on the surface of water", "a hand gesture", "to style hair in curves"]
+  },
+  {
+    "word": "point",
+    "meaning": ["a sharp end", "a unit of scoring", "a particular detail or argument"]
+  },
+  {
+    "word": "duck",
+    "meaning": ["a type of bird", "to lower your head or body quickly to avoid something"]
+  },
+  {
+    "word": "current",
+    "meaning": ["a flow of water or electricity", "happening now"]
+  },
+  {
+    "word": "rock",
+    "meaning": ["a solid mineral material", "a genre of music", "to move back and forth"]
+  },
+  {
+    "word": "match",
+    "meaning": ["a contest or game", "a pair or equal", "a small stick to start a fire"]
+  },
+  {
+    "word": "trip",
+    "meaning": ["a journey", "to stumble or fall"]
+  },
+  {
+    "word": "train",
+    "meaning": ["a form of transportation", "to teach or instruct", "to focus or direct"]
+  },
+  {
+    "word": "well",
+    "meaning": ["in good health", "a source of water from the ground"]
+  },
+  {
+    "word": "fine",
+    "meaning": ["of high quality", "a sum of money as punishment", "thin or delicate"]
+  }
+]
