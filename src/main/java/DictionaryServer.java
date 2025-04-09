@@ -8,24 +8,29 @@ public class DictionaryServer {
 
         try {
             ServerSocket server = new ServerSocket(1234);
+            System.out.println("Server is online\n");
             while(true) {
-                System.out.println("Server open for business");
-                Socket socket = server.accept(); // Open server to connections, block
-                System.out.println("Server has accepted a connection");
+                // Open server to connections, block
+                Socket socket = server.accept();
 
-                // Get the output stream associated with the socket
-                OutputStream socketOut = socket.getOutputStream();
+                // Open the input and output stream
+                OutputStream socketOut = socket.getOutputStream(); // Send to the client
                 DataOutputStream dos = new DataOutputStream(socketOut);
-
-                // Send a msg
-                dos.writeUTF("You motherfucker");
-
-                // Get the input stream
-                InputStream socketIn = socket.getInputStream();
+                InputStream socketIn = socket.getInputStream();    // Receive from the Client
                 DataInputStream dis = new DataInputStream(socketIn);
 
-                String request = dis.readUTF();
-                System.out.println(request);
+                // Keep the connection open until given the close command
+                boolean end = false;
+                while(!end) {
+                    String clientRequest = dis.readUTF().toLowerCase();
+                    if(clientRequest.equals("exit")) {
+                        end = true;
+                    } else {
+                        String response = dict.handleRequest(clientRequest);
+                        dos.writeUTF(response);
+                    }
+                }
+                System.out.println("Connection Closed");
 
                 // Close the connection
                 dos.close();

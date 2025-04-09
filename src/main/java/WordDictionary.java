@@ -4,12 +4,14 @@ import com.google.gson.reflect.TypeToken;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 // Responsible for CRUD operations on "words"
 public class WordDictionary {
-    private ConcurrentHashMap<String, List<String>> dict = new ConcurrentHashMap<String, List<String>>();
+    private ConcurrentHashMap<String, ArrayList<String>> dict = new ConcurrentHashMap<String, ArrayList<String>>();
 
     public WordDictionary() {
         populateDictionary();
@@ -50,6 +52,41 @@ public class WordDictionary {
         }
     }
 
+    protected String handleRequest(String request) {
+        int startIndex = request.indexOf("(");
+        int endIndex = request.indexOf(")");
+        String command = request.substring(0, startIndex);
+        ArrayList<String> parameters = new ArrayList<>(Arrays.asList(request.substring(startIndex+1, endIndex).split(",")));
+
+        // Trim whitespaces from all parameters
+        parameters.replaceAll(String::trim);
+
+        String response = "";
+        switch(command) {
+            case "remove":
+                response = delete(parameters.getFirst());
+                break;
+            case "meaning":
+                response = meaning(parameters.getFirst());
+                break;
+            case "new":
+                String word = parameters.getFirst();
+                ArrayList<String> meanings = new ArrayList<>(parameters.subList(1, parameters.size()));
+                response = newWord(word, meanings);
+                break;
+            case "add_meaning":
+                response = addNewMeaning(parameters.getFirst(), parameters.get(1));
+                break;
+            case "update":
+                response = updateMeaning(parameters.getFirst(), parameters.get(1), parameters.get(2));
+                break;
+            case "exit":
+                response = "exit";
+                break;
+        }
+        return response;
+    }
+
     // Helper function that checks if a word exists in the dictionary
     private boolean wordExists(String word) {
         return dict.containsKey(word);
@@ -58,22 +95,29 @@ public class WordDictionary {
     // Return the meaning of a word
     public String meaning(String word) {
         if(wordExists(word)) {
-            List<String> meanings = dict.get(word);
-            StringBuilder wordMeaningSB = new StringBuilder("Meaning:\n");
+            ArrayList<String> meanings = dict.get(word);
+            StringBuilder wordMeaningSB = new StringBuilder("Meaning(s) of the word: " + word + "\n");
             int count = 1;
             for(String meaning: meanings) {
-                wordMeaningSB.append(count).append(". ").append(meaning).append("\n\n");
+                wordMeaningSB.append(count).append(". ").append(meaning);
+                if(count < meanings.size()) {
+                    wordMeaningSB.append("\n");
+                }
+                count += 1;
             }
             return wordMeaningSB.toString();
         } else { // Word doesn't exist
-            return null;
+            return "Error: The word \"" + word + "\" does not exist in the dictionary";
         }
     }
 
     // Add a new word to the dictionary
-    public String newWord(String word, List<String> meanings) {
+    public String newWord(String word, ArrayList<String> meanings) {
         try {
-            List<String> value = dict.putIfAbsent(word, meanings); // Returns null if word doesn't exist
+            ArrayList<String> value = dict.putIfAbsent(word, meanings); // Returns null if word doesn't exist
+            if(value != null) {
+                return "Error: The word \"" + word + "\" already exists";
+            }
             return "Success";
         } catch (NullPointerException e) {
             return "Error: cannot create, word already exists";
@@ -82,7 +126,10 @@ public class WordDictionary {
 
     public String delete(String word) {
         try {
-            dict.remove(word);
+            ArrayList<String> value = dict.remove(word);
+            if(value == null) {
+                return "Error: The word \"" + word + "\" does not exist in the dictionary";
+            }
             return "Success";
         } catch (NullPointerException e) {
             return "Error: Cannot delete, word does not exist";
@@ -91,23 +138,23 @@ public class WordDictionary {
 
     public String addNewMeaning(String searchWord, String newMeaning) {
         try {
-            List<String> value = dict.computeIfPresent(searchWord, (word, meanings) -> {
+            ArrayList<String> value = dict.computeIfPresent(searchWord, (word, meanings) -> {
                 if(meanings.contains(newMeaning)) {
-                    return null;
+                    return new ArrayList<>();
+                } else {
+                    meanings.add(newMeaning);
                 }
-                meanings.add(newMeaning);
                 return meanings;
             });
 
-            if(value == null) { // Meaning already exists
-                throw new MeaningAlreadyExistsException();
+            if(value == null) { // Word doesn't exist
+                return "Error: cannot add meaning, word doesn't exist";
+            } else if (value.isEmpty()) { // Meaning already exists
+                return "Error: cannot add meaning, meaning already exists";
             }
             return "Success";
         } catch (NullPointerException npe) { // Word doesn't exist
-            return "Error: cannot add meaning, word doesn't exist";
-        }
-        catch (MeaningAlreadyExistsException e) {
-            return e.getMessage();
+            return "Error: system error";
         } catch (RuntimeException re) {
             return "Error: an error occurred while adding the new meaning";
         }
@@ -115,9 +162,9 @@ public class WordDictionary {
 
     public String updateMeaning(String searchWord, String oldMeaning, String newMeaning) {
         try {
-            List<String> value = dict.computeIfPresent(searchWord, (word, meanings) -> {
+            ArrayList<String> value = dict.computeIfPresent(searchWord, (word, meanings) -> {
                 if(!meanings.contains(oldMeaning)) {
-                    return null;
+                    return new ArrayList<>();
                 }
                 int index = meanings.indexOf(oldMeaning);
                 meanings.set(index, newMeaning);
@@ -125,13 +172,13 @@ public class WordDictionary {
             });
 
             if(value == null) {
-                throw new MeaningDoesNotExistException();
+                return "Error: Cannot update meaning, word does not exist";
+            } else if (value.isEmpty()) {
+                return "Error: Cannot update meaning, old meaning does not exist";
             }
             return "Success";
         } catch (NullPointerException npe) { // Word doesn't exist
-            return "Error: cannot update meaning, word doesn't exist";
-        } catch (MeaningDoesNotExistException e) {
-            return e.getMessage();
+            return "Error: system error";
         } catch (RuntimeException re) {
             return "Error: an error occurred while updating the meaning";
         }
