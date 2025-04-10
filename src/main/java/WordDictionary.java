@@ -80,9 +80,6 @@ public class WordDictionary {
             case "update":
                 response = updateMeaning(parameters.getFirst(), parameters.get(1), parameters.get(2));
                 break;
-            case "exit":
-                response = "exit";
-                break;
         }
         return response;
     }
