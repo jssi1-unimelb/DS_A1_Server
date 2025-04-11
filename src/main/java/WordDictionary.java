@@ -13,16 +13,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WordDictionary {
     private ConcurrentHashMap<String, ArrayList<String>> dict = new ConcurrentHashMap<String, ArrayList<String>>();
 
-    public WordDictionary() {
-        populateDictionary();
+    public WordDictionary(String initialFile) {
+        populateDictionary(initialFile);
     }
 
     // Setup function that reads a pre-made text file to populate the dictionary
-    private void populateDictionary() {
+    private void populateDictionary(String initialFile) {
         // IO operations
         try {
             // Read information from the text file
-            FileReader fr = new FileReader("initialDictionary.txt");
+            FileReader fr = new FileReader(initialFile);
             StringBuilder sb = new StringBuilder("");
             int data = fr.read();
             while(data != -1) { // Not end of file
@@ -45,8 +45,6 @@ public class WordDictionary {
             for(DictionaryEntry entry : entries) {
                 dict.put(entry.word, entry.meaning);
             }
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

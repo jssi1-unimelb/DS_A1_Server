@@ -4,10 +4,11 @@ import java.net.Socket;
 
 public class DictionaryServer {
     public static void main(String args[]) throws IOException {
-        WordDictionary dict = new WordDictionary();
+        WordDictionary dict = new WordDictionary(args[4]);
 
         try {
-            ServerSocket server = new ServerSocket(1234);
+            int port = Integer.parseInt(args[3]);
+            ServerSocket server = new ServerSocket(port);
             System.out.println("Server is online\n");
             while(true) {
                 // Open server to connections, block
@@ -38,11 +39,11 @@ public class DictionaryServer {
                 socket.close();
             }
         } catch(IOException ioe) {
-            System.out.println("IOException: " + ioe);
-            ioe.printStackTrace();
+            System.out.println("Invalid initial file provided");
         } catch(SecurityException se) {
-            System.out.println("Security Exceptiion: " + se);
-            se.printStackTrace();
+            System.out.println("Security Exception: " + se);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid Port Provided");
         }
     }
 }
