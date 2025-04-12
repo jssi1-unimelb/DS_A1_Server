@@ -30,7 +30,6 @@ public class ConnectionPool {
                 throw new RuntimeException(e);
             }
         }
-        System.out.println("Connection picked up by thread");
         concurrentConnections++;
         return queuedConnections.removeFirst();
     }

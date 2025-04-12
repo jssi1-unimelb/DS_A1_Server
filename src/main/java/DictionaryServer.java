@@ -4,8 +4,7 @@ import java.net.Socket;
 
 public class DictionaryServer {
     private final static int MAX_THREADS = 10;
-    private final static int TIMEOUT = 1;
-//    private final static int TIMEOUT = 60 * 1000;
+    private final static int TIMEOUT = 5 * 60 * 1000; // 5 minute timeout
 
     // Store workers in an array to prevent garbage collection from destroying the thread
     private final static Worker[] workers = new Worker[MAX_THREADS];
@@ -25,8 +24,9 @@ public class DictionaryServer {
             System.out.println("Server is online\n");
 
             while(true) {
-                try (Socket socket = server.accept()) {
+                try {
                     // Listen for connections
+                    Socket socket = server.accept();
                     socket.setSoTimeout(TIMEOUT);
 
                     // Add connection to connection pool to be served
@@ -35,13 +35,18 @@ public class DictionaryServer {
                     if(!connected) { // Server is busy
                         try {
                             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-                            dos.writeUTF("Server is busy, please try again later");
+                            Response response = new Response("Server is busy, please try again later");
+                            response.setUnavailable();
+                            String responseJson = GsonUtil.gson.toJson(response);
+                            dos.writeUTF(responseJson);
                             dos.close();
                             socket.close();
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
                     }
+                } catch (RuntimeException e) {
+                    System.out.println("Runtime: " + e.getMessage());
                 }
             }
         } catch(IOException ioe) {

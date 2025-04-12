@@ -18,33 +18,33 @@ public class Worker extends Thread {
 
             try {
                 // Open up read and write streams
-                DataOutputStream output = new DataOutputStream(client.getOutputStream());
                 DataInputStream input = new DataInputStream(client.getInputStream());
+                DataOutputStream output = new DataOutputStream(client.getOutputStream());
+                output.writeUTF(GsonUtil.gson.toJson(new Response("Connected to server")));
 
                 // Keep the connection open until given the close command
                 boolean end = false;
-
                 while(!end) {
-                    String clientRequest = input.readUTF().toLowerCase(); // Listen for client requests
-                    if(clientRequest.equals("exit")) {
+                    // Listen for client requests
+                    String requestRaw = input.readUTF();
+                    Request request = GsonUtil.gson.fromJson(requestRaw, Request.class);
+
+                    Response response = null;
+                    if(request.command.equals("exit")) {
                         end = true;
+                        response = new Response("Connection closed");
+                        response.setUnavailable();
+                        pool.killConnection();
                     } else {
-                        String response = dict.handleRequest(clientRequest);
-                        output.writeUTF(response);
+                        response = dict.handleRequest(request);
                     }
+                    String responseJson = GsonUtil.gson.toJson(response);
+                    output.writeUTF(responseJson);
                 }
-
-                // Sever client connection
-                input.close();
-                output.close();
-                client.close();
-                pool.killConnection();
-
             } catch(IOException ioe) {
                 System.out.println("IOException: " + ioe.getMessage());
+                pool.killConnection();
             }
-
-            // Need to add exception to send the client side a message when the connection times out.
         }
     }
 }
