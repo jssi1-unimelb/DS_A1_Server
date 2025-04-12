@@ -3,40 +3,46 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class DictionaryServer {
+    private final static int MAX_THREADS = 10;
+    private final static int TIMEOUT = 1;
+//    private final static int TIMEOUT = 60 * 1000;
+
+    // Store workers in an array to prevent garbage collection from destroying the thread
+    private final static Worker[] workers = new Worker[MAX_THREADS];
+
     public static void main(String args[]) throws IOException {
         WordDictionary dict = new WordDictionary(args[4]);
+        ConnectionPool pool = new ConnectionPool(MAX_THREADS);
+        for(int i = 0; i < MAX_THREADS; i++) {
+            Worker newWorker = new Worker(dict, pool);
+            newWorker.start();
+            workers[i] = newWorker;
+        }
+        int port = Integer.parseInt(args[3]);
 
-        try {
-            int port = Integer.parseInt(args[3]);
-            ServerSocket server = new ServerSocket(port);
+        try (ServerSocket server = new ServerSocket(port))
+        {
             System.out.println("Server is online\n");
+
             while(true) {
-                // Open server to connections, block
-                Socket socket = server.accept();
+                try (Socket socket = server.accept()) {
+                    // Listen for connections
+                    socket.setSoTimeout(TIMEOUT);
 
-                // Open the input and output stream
-                OutputStream socketOut = socket.getOutputStream(); // Send to the client
-                DataOutputStream dos = new DataOutputStream(socketOut);
-                InputStream socketIn = socket.getInputStream();    // Receive from the Client
-                DataInputStream dis = new DataInputStream(socketIn);
+                    // Add connection to connection pool to be served
+                    boolean connected = pool.connect(socket);
 
-                // Keep the connection open until given the close command
-                boolean end = false;
-                while(!end) {
-                    String clientRequest = dis.readUTF().toLowerCase();
-                    if(clientRequest.equals("exit")) {
-                        end = true;
-                    } else {
-                        String response = dict.handleRequest(clientRequest);
-                        dos.writeUTF(response);
+                    if(!connected) { // Server is busy
+                        try {
+                            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+                            dos.writeUTF("Server is busy, please try again later");
+                            dos.close();
+                            socket.close();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 }
-                System.out.println("Connection Closed");
-
-                // Close the connection
-                dos.close();
-                socketOut.close();
-                socket.close();
             }
         } catch(IOException ioe) {
             System.out.println("Invalid initial file provided");
