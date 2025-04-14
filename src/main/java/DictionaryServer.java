@@ -11,41 +11,38 @@ public class DictionaryServer {
     private final static Worker[] workers = new Worker[MAX_THREADS];
 
     public static void main(String[] args) {
-        WordDictionary dict = new WordDictionary(args[1]);
-        ConnectionPool pool = new ConnectionPool(MAX_THREADS);
-        for(int i = 0; i < MAX_THREADS; i++) {
-            Worker newWorker = new Worker(dict, pool);
-            newWorker.start();
-            workers[i] = newWorker;
-        }
         int port = Integer.parseInt(args[0]);
 
         try (ServerSocket server = new ServerSocket(port))
         {
+            WordDictionary dict = new WordDictionary(args[1]);
+            ConnectionPool pool = new ConnectionPool(MAX_THREADS);
+            for(int i = 0; i < MAX_THREADS; i++) {
+                Worker newWorker = new Worker(dict, pool);
+                newWorker.start();
+                workers[i] = newWorker;
+            }
+
             System.out.println("Server is online\n");
 
             while(true) {
-                try {
-                    // Listen for connections
-                    Socket socket = server.accept();
-                    socket.setSoTimeout(TIMEOUT);
+                // Listen for connections
+                Socket socket = server.accept();
+                socket.setSoTimeout(TIMEOUT);
 
-                    // Add connection to connection pool to be served
-                    boolean connected = pool.connect(socket);
+                // Add connection to connection pool to be served
+                boolean connected = pool.connect(socket);
 
-                    if(!connected) { // Server is busy
-                        socket.close();
-                    }
-                } catch (RuntimeException e) {
-                    System.out.println("Runtime: " + e.getMessage());
+                if(!connected) { // Server is busy
+                    socket.close();
                 }
             }
         } catch(IOException ioe) {
-            System.out.println("Invalid initial file provided");
+            System.out.println("IOException: " + ioe.getMessage());
         } catch(SecurityException se) {
-            System.out.println("Security Exception: " + se);
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid Port Provided");
+            System.out.println("Security exception: " + se.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("Runtime Exception: " + e.getMessage());
         }
     }
 }

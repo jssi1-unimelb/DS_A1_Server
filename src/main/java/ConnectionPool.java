@@ -23,13 +23,9 @@ public class ConnectionPool {
         return true;
     }
 
-    public synchronized Socket getConnectionRequest() {
+    public synchronized Socket getConnectionRequest() throws InterruptedException {
         while(queuedConnections.isEmpty()) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            wait();
         }
         concurrentConnections++;
         return queuedConnections.removeFirst();

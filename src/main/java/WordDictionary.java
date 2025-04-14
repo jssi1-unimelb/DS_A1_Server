@@ -11,39 +11,35 @@ import java.util.concurrent.ConcurrentHashMap;
 
 // Responsible for CRUD operations on "words"
 public class WordDictionary {
-    private final ConcurrentHashMap<String, ArrayList<String>> dict = new ConcurrentHashMap<String, ArrayList<String>>();
+    private final ConcurrentHashMap<String, ArrayList<String>> dict = new ConcurrentHashMap<>();
 
-    public WordDictionary(String initialFile) {
+    public WordDictionary(String initialFile) throws IOException {
         populateDictionary(initialFile);
     }
 
     // Setup function that reads a pre-made text file to populate the dictionary
-    private void populateDictionary(String initialFile) {
+    private void populateDictionary(String initialFile) throws IOException {
         // IO operations
-        try {
-            // Read information from the text file
-            FileReader fr = new FileReader(initialFile);
-            StringBuilder sb = new StringBuilder();
-            int data = fr.read();
-            while(data != -1) { // Not end of file
-                sb.append((char) data);
-                data = fr.read();
-            }
-            fr.close(); // Close file reader
-            String jsonArray = sb.toString();
+        // Read information from the text file
+        FileReader fr = new FileReader(initialFile);
+        StringBuilder sb = new StringBuilder();
+        int data = fr.read();
+        while(data != -1) { // Not end of file
+            sb.append((char) data);
+            data = fr.read();
+        }
+        fr.close(); // Close file reader
+        String jsonArray = sb.toString();
 
-            // Describe to Gson that the JSON should be deserialized into a list of DictionaryEntries
-            Type listType = new TypeToken<List<DictionaryEntry>>(){}.getType();
+        // Describe to Gson that the JSON should be deserialized into a list of DictionaryEntries
+        Type listType = new TypeToken<List<DictionaryEntry>>(){}.getType();
 
-            // Deserialize
-            List<DictionaryEntry> entries = GsonUtil.gson.fromJson(jsonArray, listType);
+        // Deserialize
+        List<DictionaryEntry> entries = GsonUtil.gson.fromJson(jsonArray, listType);
 
-            // Add to dictionary
-            for(DictionaryEntry entry : entries) {
-                dict.put(entry.word, entry.meaning);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        // Add to dictionary
+        for(DictionaryEntry entry : entries) {
+            dict.put(entry.word, entry.meaning);
         }
     }
 
@@ -74,27 +70,26 @@ public class WordDictionary {
         return response;
     }
 
-    // Helper function that checks if a word exists in the dictionary
-    private boolean wordExists(String word) {
-        return dict.containsKey(word);
-    }
-
     // Return the meaning of a word
     public Response meaning(String word) {
-        if(wordExists(word)) {
-            ArrayList<String> meanings = dict.get(word);
-            StringBuilder wordMeaningSB = new StringBuilder("Meaning(s) of the word: " + word + "\n");
-            int count = 1;
-            for(String meaning: meanings) {
-                wordMeaningSB.append(count).append(". ").append(meaning);
-                if(count < meanings.size()) {
-                    wordMeaningSB.append("\n");
+        try {
+            if(dict.containsKey(word)) { // Word exists
+                ArrayList<String> meanings = dict.get(word);
+                StringBuilder wordMeaningSB = new StringBuilder("Meaning(s) of the word: " + word + "\n");
+                int count = 1;
+                for(String meaning: meanings) {
+                    wordMeaningSB.append(count).append(". ").append(meaning);
+                    if(count < meanings.size()) {
+                        wordMeaningSB.append("\n");
+                    }
+                    count += 1;
                 }
-                count += 1;
+                return new Response(wordMeaningSB.toString());
+            } else { // Word doesn't exist
+                return new Response("Error: The word \"" + word + "\" does not exist in the dictionary");
             }
-            return new Response(wordMeaningSB.toString());
-        } else { // Word doesn't exist
-            return new Response("Error: The word \"" + word + "\" does not exist in the dictionary");
+        } catch (NullPointerException e) {
+            return new Response("Error: system error");
         }
     }
 
@@ -135,7 +130,7 @@ public class WordDictionary {
             });
 
             if(value == null) { // Word doesn't exist
-                return new Response("Error: cannot add meaning, word doesn't exist");
+                return new Response("Error: cannot add meaning, \"" + searchWord + "\" doesn't exist");
             } else if (value.isEmpty()) { // Meaning already exists
                 return new Response("Error: cannot add meaning, meaning already exists");
             }

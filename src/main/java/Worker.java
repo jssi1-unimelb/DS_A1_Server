@@ -15,14 +15,15 @@ public class Worker extends Thread {
 
     public void run() {
         while(true) {
-            Socket client = pool.getConnectionRequest();
-
             try (
+                // Get connection from the pool
+                Socket client = pool.getConnectionRequest();
+
                 // Open up read and write streams
                 DataInputStream input = new DataInputStream(client.getInputStream());
                 DataOutputStream output = new DataOutputStream(client.getOutputStream());
                 ) {
-                output.writeUTF(GsonUtil.gson.toJson(new Response("connected to server")));
+                output.writeUTF(GsonUtil.gson.toJson(new Response("Connected to server")));
                 // Keep the connection open until given the close command
                 boolean end = false;
                 while(!end) {
@@ -33,7 +34,7 @@ public class Worker extends Thread {
                     Response response = null;
                     if(request.command.equals("exit")) {
                         end = true;
-                        response = new Response("connection closed");
+                        response = new Response("Connection closed");
                         response.setUnavailable();
                         pool.killConnection();
                     } else {
@@ -44,6 +45,12 @@ public class Worker extends Thread {
                 }
             } catch(IOException ioe) {
                 System.out.println("IOException: " + ioe.getMessage());
+                pool.killConnection();
+            } catch (RuntimeException e) {
+                System.out.println("Runtime Exception: " + e.getMessage());
+                pool.killConnection();
+            } catch (InterruptedException ie) {
+                System.out.println("Interruption Exception: " + ie.getMessage());
                 pool.killConnection();
             }
         }
