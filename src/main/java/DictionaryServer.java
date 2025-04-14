@@ -34,6 +34,11 @@ public class DictionaryServer {
                 boolean connected = pool.connect(socket);
 
                 if(!connected) { // Server is busy
+                    DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+                    Response res = new Response("Error: Server is busy");
+                    res.setUnavailable();
+                    dos.writeUTF(GsonUtil.gson.toJson(res));
+                    dos.close();
                     socket.close();
                 }
             }
