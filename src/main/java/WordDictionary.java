@@ -120,21 +120,21 @@ public class WordDictionary {
 
     public Response addNewMeaning(String searchWord, String newMeaning) {
         try {
+            final Response[] responseHolder = new Response[1];
             ArrayList<String> value = dict.computeIfPresent(searchWord, (word, meanings) -> {
-                if(meanings.contains(newMeaning)) {
-                    return new ArrayList<>();
-                } else {
+                if(!meanings.contains(newMeaning)) {
                     meanings.add(newMeaning);
+                    responseHolder[0] = new Response("New meaning added to \"" + searchWord + "\"");
+                } else {
+                    responseHolder[0] = new Response("Error: cannot add meaning, meaning already exists");
                 }
                 return meanings;
             });
 
             if(value == null) { // Word doesn't exist
-                return new Response("Error: cannot add meaning, \"" + searchWord + "\" doesn't exist");
-            } else if (value.isEmpty()) { // Meaning already exists
-                return new Response("Error: cannot add meaning, meaning already exists");
+                return new Response("Error: cannot add meaning, the word \"" + searchWord + "\" doesn't exist");
             }
-            return new Response("New meaning added to \"" + searchWord + "\"");
+            return responseHolder[0];
         } catch (NullPointerException npe) { // Word doesn't exist
             return new Response("Error: system error");
         } catch (RuntimeException re) {
@@ -143,22 +143,27 @@ public class WordDictionary {
     }
 
     public Response updateMeaning(String searchWord, String oldMeaning, String newMeaning) {
+
         try {
+            final Response[] responseHolder = new Response[1];
             ArrayList<String> value = dict.computeIfPresent(searchWord, (word, meanings) -> {
-                if(!meanings.contains(oldMeaning)) {
-                    return new ArrayList<>();
+                // Old meaning found, new meaning not present, update
+                if(meanings.contains(oldMeaning) && !meanings.contains(newMeaning)) {
+                    responseHolder[0] = new Response("Meaning has been updated");
+                    int index = meanings.indexOf(oldMeaning);
+                    meanings.set(index, newMeaning);
+                } else if (!meanings.contains(oldMeaning)) {
+                    responseHolder[0] = new Response("Error: Cannot update meaning, old meaning doesn't exist");
+                } else {
+                    responseHolder[0] = new Response("Error: Cannot update meaning, new meaning already exists");
                 }
-                int index = meanings.indexOf(oldMeaning);
-                meanings.set(index, newMeaning);
                 return meanings;
             });
 
-            if(value == null) {
-                return new Response("Error: Cannot update meaning, word does not exist");
-            } else if (value.isEmpty()) {
-                return new Response("Error: Cannot update meaning, old meaning does not exist");
+            if(value == null) { // Word doesn't exist
+                return new Response("Error: Cannot update meaning, the word \"" + searchWord + "\" does not exist");
             }
-            return new Response("Meaning has been updated");
+            return responseHolder[0];
         } catch (NullPointerException npe) { // Word doesn't exist
             return new Response("Error: system error");
         } catch (RuntimeException re) {
