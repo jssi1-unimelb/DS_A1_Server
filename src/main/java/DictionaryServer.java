@@ -1,3 +1,4 @@
+// Jiachen Si 1085839
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -9,15 +10,15 @@ public class DictionaryServer {
     // Store workers in an array to prevent garbage collection from destroying the thread
     private final static Worker[] workers = new Worker[MAX_THREADS];
 
-    public static void main(String args[]) throws IOException {
-        WordDictionary dict = new WordDictionary(args[4]);
+    public static void main(String[] args) {
+        WordDictionary dict = new WordDictionary(args[1]);
         ConnectionPool pool = new ConnectionPool(MAX_THREADS);
         for(int i = 0; i < MAX_THREADS; i++) {
             Worker newWorker = new Worker(dict, pool);
             newWorker.start();
             workers[i] = newWorker;
         }
-        int port = Integer.parseInt(args[3]);
+        int port = Integer.parseInt(args[0]);
 
         try (ServerSocket server = new ServerSocket(port))
         {
@@ -33,17 +34,7 @@ public class DictionaryServer {
                     boolean connected = pool.connect(socket);
 
                     if(!connected) { // Server is busy
-                        try {
-                            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-                            Response response = new Response("Server is busy, please try again later");
-                            response.setUnavailable();
-                            String responseJson = GsonUtil.gson.toJson(response);
-                            dos.writeUTF(responseJson);
-                            dos.close();
-                            socket.close();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                        socket.close();
                     }
                 } catch (RuntimeException e) {
                     System.out.println("Runtime: " + e.getMessage());

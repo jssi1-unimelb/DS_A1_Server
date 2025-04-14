@@ -1,7 +1,7 @@
+// Jiachen Si 1085839
 import java.util.ArrayList;
-import java.util.List;
 
 public class DictionaryEntry {
-    protected String word;
-    protected ArrayList<String> meaning;
+    public String word;
+    public ArrayList<String> meaning;
 }

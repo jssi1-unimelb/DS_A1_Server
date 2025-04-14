@@ -1,3 +1,4 @@
+// Jiachen Si 1085839
 import java.net.Socket;
 import java.util.LinkedList;
 
@@ -12,7 +13,7 @@ public class ConnectionPool {
         this.maxConnections = maxConnections;
     }
 
-    // Queues up connection request
+    // Setup connection
     public synchronized boolean connect(Socket socket) {
         if(concurrentConnections == maxConnections) {
             return false; // Server is busy

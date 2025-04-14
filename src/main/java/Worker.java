@@ -1,3 +1,4 @@
+// Jiachen Si 1085839
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -16,12 +17,12 @@ public class Worker extends Thread {
         while(true) {
             Socket client = pool.getConnectionRequest();
 
-            try {
+            try (
                 // Open up read and write streams
                 DataInputStream input = new DataInputStream(client.getInputStream());
                 DataOutputStream output = new DataOutputStream(client.getOutputStream());
-                output.writeUTF(GsonUtil.gson.toJson(new Response("Connected to server")));
-
+                ) {
+                output.writeUTF(GsonUtil.gson.toJson(new Response("connected to server")));
                 // Keep the connection open until given the close command
                 boolean end = false;
                 while(!end) {
@@ -32,7 +33,7 @@ public class Worker extends Thread {
                     Response response = null;
                     if(request.command.equals("exit")) {
                         end = true;
-                        response = new Response("Connection closed");
+                        response = new Response("connection closed");
                         response.setUnavailable();
                         pool.killConnection();
                     } else {

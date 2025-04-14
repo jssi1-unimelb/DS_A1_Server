@@ -1,4 +1,4 @@
-import com.google.gson.*;
+// Jiachen Si 1085839
 import java.lang.reflect.Type;
 import com.google.gson.reflect.TypeToken;
 
@@ -23,7 +23,7 @@ public class WordDictionary {
         try {
             // Read information from the text file
             FileReader fr = new FileReader(initialFile);
-            StringBuilder sb = new StringBuilder("");
+            StringBuilder sb = new StringBuilder();
             int data = fr.read();
             while(data != -1) { // Not end of file
                 sb.append((char) data);
@@ -32,14 +32,11 @@ public class WordDictionary {
             fr.close(); // Close file reader
             String jsonArray = sb.toString();
 
-            // Parse JSON into a list of Word objects
-            Gson gson = new Gson();
-
             // Describe to Gson that the JSON should be deserialized into a list of DictionaryEntries
             Type listType = new TypeToken<List<DictionaryEntry>>(){}.getType();
 
             // Deserialize
-            List<DictionaryEntry> entries = gson.fromJson(jsonArray, listType);
+            List<DictionaryEntry> entries = GsonUtil.gson.fromJson(jsonArray, listType);
 
             // Add to dictionary
             for(DictionaryEntry entry : entries) {
@@ -50,7 +47,7 @@ public class WordDictionary {
         }
     }
 
-    protected Response handleRequest(Request request) {
+    public Response handleRequest(Request request) {
         String command = request.command;
         ArrayList<String> parameters = new ArrayList<>(Arrays.asList(request.parameters));
 
